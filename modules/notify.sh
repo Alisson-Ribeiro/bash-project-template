@@ -5,7 +5,8 @@ notify_run() {
     return 0
   fi
 
-  local mensagem="[$APP_NOME] Pipeline concluído em $(date '+%Y-%m-%d %H:%M:%S') (ambiente: $AMBIENTE)"
+  local mensagem
+  mensagem="[$APP_NOME] Pipeline concluido em $(date '+%Y-%m-%d %H:%M:%S') (ambiente: $AMBIENTE)"
   log_debug "Enviando notificação para webhook"
 
   curl -s -X POST "$SLACK_WEBHOOK_URL" \

@@ -8,7 +8,8 @@ _RESET='\033[0m'
 _log() {
   local cor="$1" prefixo="$2"
   shift 2
-  local msg="[$prefixo] $(date '+%H:%M:%S') — $*"
+  local msg
+  msg="[$prefixo] $(date '+%H:%M:%S') - $*"
   echo -e "${cor}${msg}${_RESET}" | tee -a "$LOG_ARQUIVO"
 }
 
