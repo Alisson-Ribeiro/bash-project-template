@@ -1,0 +1,1 @@
+arquivo de fixture para testes
