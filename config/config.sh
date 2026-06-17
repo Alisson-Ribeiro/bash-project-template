@@ -26,6 +26,9 @@ AUTO_CONFIRM="${AUTO_CONFIRM:-false}"
 # Nunca usar /tmp em produção — dados são perdidos em reboot e não há controle de permissão.
 BACKUP_ORIGEM="${BACKUP_ORIGEM:-/tmp/myapp_origem}"
 BACKUP_DESTINO="${BACKUP_DESTINO:-/tmp/myapp_backup}"
+# Margem mínima de espaço livre exigida no destino além do tamanho da origem (em MB).
+# Aumentar em produção para garantir espaço residual no volume após o backup.
+BACKUP_MARGEM_MB="${BACKUP_MARGEM_MB:-100}"
 
 # Não defina o valor aqui. Injete SLACK_WEBHOOK_URL como variável de ambiente protegida
 # no sistema de CI/CD ou carregue de um secret manager em tempo de execução.

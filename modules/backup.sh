@@ -3,10 +3,10 @@ backup_run() {
   validate_directory "$BACKUP_ORIGEM"
   validate_directory "$BACKUP_DESTINO"
 
-  # Em produção, verificar espaço disponível antes de iniciar o backup para evitar
-  # arquivos corrompidos por falta de disco:
-  #   local espaco_livre; espaco_livre=$(df -m "$BACKUP_DESTINO" | awk 'NR==2{print $4}')
-  #   [ "$espaco_livre" -gt 500 ] || { log_erro "Espaço insuficiente em $BACKUP_DESTINO"; return 1; }
+  local tamanho_origem mb_necessarios
+  tamanho_origem=$(du -sm "$BACKUP_ORIGEM" | awk '{print $1}')
+  mb_necessarios=$(( tamanho_origem + BACKUP_MARGEM_MB ))
+  validate_disk_space "$BACKUP_DESTINO" "$mb_necessarios"
 
   local timestamp
   timestamp=$(date '+%Y%m%d_%H%M%S')
