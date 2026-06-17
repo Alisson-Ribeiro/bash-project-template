@@ -1,4 +1,8 @@
 #!/bin/bash
+# Whitelist de módulos permitidos — barreira de segurança contra path injection.
+# Sempre que um novo módulo for criado em modules/, adicionar o nome aqui.
+# Não remover esta verificação em produção: sem ela, qualquer valor em PIPELINE
+# poderia causar 'source' de um arquivo arbitrário no sistema.
 MODULOS_PERMITIDOS=(check_deps backup notify)
 
 _modulo_permitido() {

@@ -10,6 +10,12 @@ _log() {
   shift 2
   local msg
   msg="[$prefixo] $(date '+%H:%M:%S') - $*"
+  # 'tee -a' grava no terminal e no arquivo simultaneamente.
+  # Em produção: garantir que LOG_ARQUIVO está em /var/log com permissão correta
+  # e que logrotate está configurado — este arquivo cresce indefinidamente sem rotação.
+  # Em produção, considerar desabilitar as cores ANSI quando o stdout não for um terminal
+  # (logs redirecionados para arquivo ficam poluídos com códigos de escape):
+  #   [ -t 1 ] && COR="$cor" || COR=""
   echo -e "${cor}${msg}${_RESET}" | tee -a "$LOG_ARQUIVO"
 }
 

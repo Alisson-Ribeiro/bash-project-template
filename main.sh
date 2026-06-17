@@ -1,4 +1,6 @@
 #!/bin/bash
+# set -euo pipefail: aborta em qualquer erro, rejeita variáveis não definidas e
+# propaga falhas em pipes. Não remover em produção — protege contra erros silenciosos.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,6 +11,8 @@ source "$DIR/lib/utils.sh"
 source "$DIR/lib/validation.sh"
 source "$DIR/lib/runner.sh"
 
+# Em produção, o cleanup pode ser estendido para enviar um alerta de falha
+# (ex: chamar notify_run com mensagem de erro) antes de encerrar.
 cleanup() {
   log_aviso "Script encerrado (linha $1)"
 }
@@ -41,6 +45,8 @@ fi
 log_info "Inicializando $APP_NOME v$APP_VERSAO (ambiente: $AMBIENTE)"
 log_debug "Verbose ativado"
 
+# Em produção automatizada (cron, CI/CD), definir AUTO_CONFIRM=true no ambiente.
+# O 'read' dentro de confirm() trava indefinidamente sem terminal interativo.
 if confirm "Continuar?"; then
   log_info "Confirmado pelo usuário"
 else
@@ -48,6 +54,10 @@ else
   exit 0
 fi
 
+# A ordem do pipeline importa: check_deps deve sempre ser o primeiro módulo
+# para garantir que o ambiente está apto antes de qualquer operação com efeito colateral.
+# Para adicionar um módulo: crie modules/<nome>.sh, adicione à whitelist em runner.sh
+# e inclua o nome aqui na posição correta.
 PIPELINE=(check_deps backup notify)
 
 for modulo in "${PIPELINE[@]}"; do

@@ -14,13 +14,13 @@ teardown() {
   rm -f "$LOG_ARQUIVO"
 }
 
-@test "comand_exists retorna 0 para comando existente" {
-  run comand_exists bash
+@test "command_exists retorna 0 para comando existente" {
+  run command_exists bash
   [ "$status" -eq 0 ]
 }
 
-@test "comand_exists retorna 1 para comando inexistente" {
-  run comand_exists comando_que_nao_existe_xyz
+@test "command_exists retorna 1 para comando inexistente" {
+  run command_exists comando_que_nao_existe_xyz
   [ "$status" -eq 1 ]
 }
 
