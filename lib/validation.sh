@@ -22,3 +22,11 @@ validate_disk_space() {
   fi
   log_debug "Espaco em disco OK: ${mb_livres}MB livres em $diretorio (minimo: ${mb_necessarios}MB)"
 }
+
+validate_positive_integer() {
+  local nome="$1" valor="$2"
+  [[ "$valor" =~ ^[0-9]+$ ]] && [ "$valor" -gt 0 ] || {
+    log_erro "$nome deve ser um inteiro positivo: '$valor'"
+    return 1
+  }
+}

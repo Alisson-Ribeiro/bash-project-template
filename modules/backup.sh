@@ -2,6 +2,7 @@
 backup_run() {
   validate_directory "$BACKUP_ORIGEM"
   validate_directory "$BACKUP_DESTINO"
+  validate_positive_integer "BACKUP_MARGEM_MB" "$BACKUP_MARGEM_MB"
 
   local tamanho_origem mb_necessarios
   tamanho_origem=$(du -sm "$BACKUP_ORIGEM" | awk '{print $1}')

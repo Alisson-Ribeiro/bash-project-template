@@ -32,3 +32,43 @@ teardown() {
   run validate_directory "/tmp/diretorio_que_nao_existe_xyz_123"
   [ "$status" -eq 1 ]
 }
+
+@test "validate_positive_integer retorna 0 para inteiro positivo valido" {
+  run validate_positive_integer "BACKUP_MARGEM_MB" "100"
+  [ "$status" -eq 0 ]
+}
+
+@test "validate_positive_integer retorna 0 para valor minimo (1)" {
+  run validate_positive_integer "BACKUP_MARGEM_MB" "1"
+  [ "$status" -eq 0 ]
+}
+
+@test "validate_positive_integer retorna 1 para string" {
+  run validate_positive_integer "BACKUP_MARGEM_MB" "abc"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"deve ser um inteiro positivo"* ]]
+}
+
+@test "validate_positive_integer retorna 1 para decimal" {
+  run validate_positive_integer "BACKUP_MARGEM_MB" "10.5"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"deve ser um inteiro positivo"* ]]
+}
+
+@test "validate_positive_integer retorna 1 para valor negativo" {
+  run validate_positive_integer "BACKUP_MARGEM_MB" "-5"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"deve ser um inteiro positivo"* ]]
+}
+
+@test "validate_positive_integer retorna 1 para zero" {
+  run validate_positive_integer "BACKUP_MARGEM_MB" "0"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"deve ser um inteiro positivo"* ]]
+}
+
+@test "validate_positive_integer retorna 1 para valor vazio" {
+  run validate_positive_integer "BACKUP_MARGEM_MB" ""
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"deve ser um inteiro positivo"* ]]
+}
