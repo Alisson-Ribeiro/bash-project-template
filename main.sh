@@ -10,11 +10,11 @@ source "$DIR/lib/log.sh"
 source "$DIR/lib/utils.sh"
 source "$DIR/lib/validation.sh"
 source "$DIR/lib/runner.sh"
+source "$DIR/modules/notify.sh"
 
-# Em produção, o cleanup pode ser estendido para enviar um alerta de falha
-# (ex: chamar notify_run com mensagem de erro) antes de encerrar.
 cleanup() {
   log_aviso "Script encerrado (linha $1)"
+  notify_run "falha" "Script abortado na linha $1"
 }
 trap 'cleanup $LINENO' ERR EXIT
 
