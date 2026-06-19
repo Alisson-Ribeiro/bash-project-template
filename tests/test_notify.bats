@@ -6,6 +6,7 @@ setup() {
   export VERBOSE=false
   export APP_NOME="TestApp"
   export AMBIENTE="test"
+  export EMAIL_DESTINATARIO=""
   source "$DIR/config/config.sh"
   source "$DIR/lib/log.sh"
   source "$DIR/modules/notify.sh"
@@ -66,4 +67,33 @@ teardown() {
   export -f curl
   run notify_run "falha" "erro"
   [ "$status" -eq 0 ]
+}
+
+@test "notify_run nao tenta enviar e-mail sem EMAIL_DESTINATARIO" {
+  export SLACK_WEBHOOK_URL=""
+  export EMAIL_DESTINATARIO=""
+  run notify_run "falha" "erro"
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"E-mail enviado"* ]]
+}
+
+@test "notify_run envia e-mail com assunto contendo status e APP_NOME" {
+  export SLACK_WEBHOOK_URL=""
+  export EMAIL_DESTINATARIO="admin@exemplo.com"
+  mail() { echo "MAIL_ASSUNTO: $2"; }
+  export -f mail
+  run notify_run "falha" "Script abortado na linha 10"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"$APP_NOME"* ]]
+  [[ "$output" == *"falha"* ]]
+}
+
+@test "notify_run retorna 0 quando mail nao esta instalado" {
+  export SLACK_WEBHOOK_URL=""
+  export EMAIL_DESTINATARIO="admin@exemplo.com"
+  command() { [[ "$2" == "mail" ]] && return 1; builtin command "$@"; }
+  export -f command
+  run notify_run "falha" "erro"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"nao encontrado"* ]]
 }

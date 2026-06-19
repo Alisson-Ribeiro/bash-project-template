@@ -33,3 +33,10 @@ BACKUP_MARGEM_MB="${BACKUP_MARGEM_MB:-100}"
 # Não defina o valor aqui. Injete SLACK_WEBHOOK_URL como variável de ambiente protegida
 # no sistema de CI/CD ou carregue de um secret manager em tempo de execução.
 SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_URL:-}"
+# Não defina o valor aqui. Injete EMAIL_DESTINATARIO como variável de ambiente protegida.
+# Pré-requisito: o servidor precisa de um MTA local funcional (Postfix, Sendmail, Exim).
+# Em ambientes cloud (EC2, GCE, Azure VM) a porta 25 geralmente está bloqueada pelo provider —
+# configure um relay SMTP (ex: AWS SES, SendGrid) no MTA antes de usar este canal.
+# Em containers Docker, o comando 'mail' frequentemente não está disponível — o script
+# detecta a ausência automaticamente e ignora o envio sem abortar.
+EMAIL_DESTINATARIO="${EMAIL_DESTINATARIO:-}"
