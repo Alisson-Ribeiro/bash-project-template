@@ -18,20 +18,26 @@ notify_run() {
 
   if [ -n "${SLACK_WEBHOOK_URL:-}" ]; then
     log_debug "Enviando notificacao para webhook"
-    # Em produção, para notificações críticas implementar retentativa com backoff:
-    #   for tentativa in 1 2 3; do
-    #     curl -s ... && break || sleep $((tentativa * 5))
-    #   done
     local payload
     # shellcheck disable=SC2016  # $text é variável jq, não bash
     payload=$(jq -nc --arg text "$mensagem" '{"text": $text}')
-    if curl -s -X POST "$SLACK_WEBHOOK_URL" \
-      -H "Content-Type: application/json" \
-      -d "$payload"; then
-      log_info "Notificacao Slack enviada"
-    else
-      log_aviso "Falha ao enviar notificacao Slack — nao critico"
-    fi
+    local tentativa enviado=false
+    for tentativa in 1 2 3; do
+      if curl -s -X POST "$SLACK_WEBHOOK_URL" \
+        -H "Content-Type: application/json" \
+        -d "$payload"; then
+        log_info "Notificacao Slack enviada (tentativa $tentativa)"
+        enviado=true
+        break
+      fi
+      if [ "$tentativa" -lt 3 ]; then
+        log_debug "Tentativa $tentativa falhou — aguardando $((tentativa * 5))s"
+        sleep $((tentativa * 5))
+      else
+        log_debug "Tentativa $tentativa falhou"
+      fi
+    done
+    [ "$enviado" = false ] && log_aviso "Falha ao enviar notificacao Slack apos 3 tentativas — nao critico"
   else
     log_aviso "SLACK_WEBHOOK_URL nao definida — notificacao Slack ignorada"
   fi
@@ -44,11 +50,21 @@ notify_run() {
     else
       local assunto
       assunto="[$APP_NOME] $status em $(date '+%Y-%m-%d %H:%M:%S') ($AMBIENTE)"
-      if echo "$mensagem" | mail -s "$assunto" "$EMAIL_DESTINATARIO"; then
-        log_info "E-mail enviado para $EMAIL_DESTINATARIO"
-      else
-        log_aviso "Falha ao enviar e-mail — nao critico"
-      fi
+      local tentativa enviado=false
+      for tentativa in 1 2 3; do
+        if echo "$mensagem" | mail -s "$assunto" "$EMAIL_DESTINATARIO"; then
+          log_info "E-mail enviado para $EMAIL_DESTINATARIO (tentativa $tentativa)"
+          enviado=true
+          break
+        fi
+        if [ "$tentativa" -lt 3 ]; then
+          log_debug "Tentativa $tentativa falhou — aguardando $((tentativa * 5))s"
+          sleep $((tentativa * 5))
+        else
+          log_debug "Tentativa $tentativa falhou"
+        fi
+      done
+      [ "$enviado" = false ] && log_aviso "Falha ao enviar e-mail apos 3 tentativas — nao critico"
     fi
   fi
 }

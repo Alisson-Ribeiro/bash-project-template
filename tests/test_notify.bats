@@ -11,6 +11,9 @@ setup() {
   source "$DIR/lib/log.sh"
   source "$DIR/modules/notify.sh"
 
+  sleep() { :; }
+  export -f sleep
+
   jq() {
     while [[ $# -gt 0 ]]; do
       [[ "$1" == "--arg" && "$2" == "text" ]] && { echo "$3"; return 0; }
@@ -96,4 +99,46 @@ teardown() {
   run notify_run "falha" "erro"
   [ "$status" -eq 0 ]
   [[ "$output" == *"nao encontrado"* ]]
+}
+
+@test "Slack tenta 3 vezes quando curl sempre falha" {
+  export SLACK_WEBHOOK_URL="https://fake.webhook"
+  export EMAIL_DESTINATARIO=""
+  COUNTER=$(mktemp)
+  curl() { echo "x" >> "$COUNTER"; return 1; }
+  export -f curl
+  export COUNTER
+  run notify_run "falha" "erro"
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$COUNTER")" -eq 3 ]
+  rm -f "$COUNTER"
+}
+
+@test "Slack para apos sucesso na segunda tentativa" {
+  export SLACK_WEBHOOK_URL="https://fake.webhook"
+  export EMAIL_DESTINATARIO=""
+  COUNTER=$(mktemp)
+  curl() {
+    echo "x" >> "$COUNTER"
+    [ "$(wc -l < "$COUNTER")" -ge 2 ] && return 0 || return 1
+  }
+  export -f curl
+  export COUNTER
+  run notify_run "falha" "erro"
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$COUNTER")" -eq 2 ]
+  rm -f "$COUNTER"
+}
+
+@test "email tenta 3 vezes quando mail sempre falha" {
+  export SLACK_WEBHOOK_URL=""
+  export EMAIL_DESTINATARIO="admin@exemplo.com"
+  COUNTER=$(mktemp)
+  mail() { echo "x" >> "$COUNTER"; return 1; }
+  export -f mail
+  export COUNTER
+  run notify_run "falha" "erro"
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$COUNTER")" -eq 3 ]
+  rm -f "$COUNTER"
 }
