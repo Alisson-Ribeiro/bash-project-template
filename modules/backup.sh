@@ -36,6 +36,15 @@ _backup_db() {
   log_info "Dump de banco criado: $dump_file"
 }
 
+_backup_retencao() {
+  [ "${BACKUP_RETENCAO_DIAS:-0}" -gt 0 ] || return 0
+  local count
+  count=$(find "$BACKUP_DESTINO" -maxdepth 1 -name "backup_*.tar.gz" -mtime +"$BACKUP_RETENCAO_DIAS" | wc -l | tr -d ' ')
+  [ "$count" -eq 0 ] && { log_debug "Retencao: nenhum backup expirado"; return 0; }
+  find "$BACKUP_DESTINO" -maxdepth 1 -name "backup_*.tar.gz" -mtime +"$BACKUP_RETENCAO_DIAS" -delete
+  log_info "Retencao: $count arquivo(s) removido(s) com mais de ${BACKUP_RETENCAO_DIAS} dias"
+}
+
 backup_run() {
   validate_directory "$BACKUP_ORIGEM" || return 1
   validate_directory "$BACKUP_DESTINO" || return 1
@@ -62,7 +71,5 @@ backup_run() {
   tar -tzf "$destino" > /dev/null || { log_erro "Backup corrompido: $destino"; return 1; }
   log_info "Backup criado: $destino"
 
-  # Em produção, implementar retenção para evitar acúmulo indefinido de arquivos.
-  # Exemplo: remover backups com mais de 7 dias:
-  #   find "$BACKUP_DESTINO" -name "backup_*.tar.gz" -mtime +7 -delete
+  _backup_retencao || log_aviso "Retencao falhou — backups antigos podem acumular em $BACKUP_DESTINO"
 }

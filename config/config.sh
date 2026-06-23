@@ -29,6 +29,9 @@ BACKUP_DESTINO="${BACKUP_DESTINO:-/tmp/myapp_backup}"
 # Margem mínima de espaço livre exigida no destino além do tamanho da origem (em MB).
 # Aumentar em produção para garantir espaço residual no volume após o backup.
 BACKUP_MARGEM_MB="${BACKUP_MARGEM_MB:-100}"
+# Backups com mais de N dias são removidos automaticamente após cada execução bem-sucedida.
+# Definir como 0 para desabilitar a retenção.
+BACKUP_RETENCAO_DIAS="${BACKUP_RETENCAO_DIAS:-7}"
 
 # DB_TIPO: "postgres", "mysql" ou vazio (sem backup de banco).
 # DB_NOME, DB_HOST, DB_USUARIO: injetar via ambiente em produção.
