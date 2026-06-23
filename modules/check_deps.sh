@@ -8,6 +8,13 @@ check_deps_run() {
   local deps=(curl tar jq)
   local faltando=()
 
+  if [ -n "${DB_TIPO:-}" ]; then
+    case "$DB_TIPO" in
+      postgres) deps+=(pg_dump) ;;
+      mysql)    deps+=(mysqldump) ;;
+    esac
+  fi
+
   for dep in "${deps[@]}"; do
     if ! command_exists "$dep"; then
       faltando+=("$dep")

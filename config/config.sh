@@ -30,6 +30,16 @@ BACKUP_DESTINO="${BACKUP_DESTINO:-/tmp/myapp_backup}"
 # Aumentar em produção para garantir espaço residual no volume após o backup.
 BACKUP_MARGEM_MB="${BACKUP_MARGEM_MB:-100}"
 
+# DB_TIPO: "postgres", "mysql" ou vazio (sem backup de banco).
+# DB_NOME, DB_HOST, DB_USUARIO: injetar via ambiente em produção.
+# Credenciais NUNCA devem estar neste arquivo:
+#   PostgreSQL: usar ~/.pgpass ou PGPASSWORD no ambiente de execução.
+#   MySQL:      usar ~/.my.cnf ([client] password=...) ou MYSQL_PWD no ambiente.
+DB_TIPO="${DB_TIPO:-}"
+DB_NOME="${DB_NOME:-}"
+DB_HOST="${DB_HOST:-localhost}"
+DB_USUARIO="${DB_USUARIO:-}"
+
 # Não defina o valor aqui. Injete SLACK_WEBHOOK_URL como variável de ambiente protegida
 # no sistema de CI/CD ou carregue de um secret manager em tempo de execução.
 SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_URL:-}"
