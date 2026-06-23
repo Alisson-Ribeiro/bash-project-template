@@ -65,7 +65,7 @@ Cada módulo do pipeline é um arquivo independente em `modules/` que expõe uma
 O runner valida o nome de cada módulo contra uma whitelist antes de fazer `source`, prevenindo path injection. Segredos (webhook URLs, credenciais) nunca ficam hardcoded — são sempre lidos de variáveis de ambiente.
 
 **Testabilidade**
-Suite de testes com bats-core cobrindo log, validação e utilitários. Cada teste usa `setup`/`teardown` com arquivos temporários (`mktemp`) para garantir isolamento total.
+Suite de testes com bats-core cobrindo log, utils, validation, runner, check_deps, notify, backup_db e backup_run. Cada teste usa `setup`/`teardown` com arquivos temporários (`mktemp`) para garantir isolamento total.
 
 **CI pronto**
 O workflow do GitHub Actions executa shellcheck e bats em todo push e pull request, sem configuração adicional.
