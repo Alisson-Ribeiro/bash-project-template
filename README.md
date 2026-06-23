@@ -36,9 +36,14 @@ Ponto de partida para scripts de automação que precisam de mais do que um arqu
 │   ├── backup.sh              # Cria backup comprimido com timestamp
 │   └── notify.sh              # Envia notificação via webhook (ex: Slack)
 ├── tests/
+│   ├── test_log.bats          # Testes de log.sh
 │   ├── test_utils.bats        # Testes de utils.sh
 │   ├── test_validation.bats   # Testes de validation.sh
-│   ├── test_log.bats          # Testes de log.sh
+│   ├── test_runner.bats       # Testes de runner.sh (whitelist e path injection)
+│   ├── test_check_deps.bats   # Testes de check_deps.sh
+│   ├── test_notify.bats       # Testes de notify.sh (Slack e email)
+│   ├── test_backup_db.bats    # Testes de _backup_db (PostgreSQL e MySQL)
+│   ├── test_backup_run.bats   # Testes de backup_run (orquestração)
 │   └── fixtures/
 │       └── arquivo_valido.txt # Fixture estática para testes de validação
 └── .github/
@@ -51,7 +56,7 @@ Ponto de partida para scripts de automação que precisam de mais do que um arqu
 ## Pontos fortes
 
 **Robustez**
-O script principal roda com `set -euo pipefail`: aborta em qualquer erro, rejeita variáveis não definidas e propaga falhas em pipes. Um `trap` captura erros inesperados e registra a linha exata onde ocorreram.
+O script principal roda com `set -euo pipefail`: aborta em qualquer erro, rejeita variáveis não definidas e propaga falhas em pipes. Um `trap` captura erros inesperados, registra a linha exata onde ocorreram e aciona automaticamente `notify_run` — enviando alerta via Slack e/ou email para qualquer aborto do pipeline.
 
 **Modularidade**
 Cada módulo do pipeline é um arquivo independente em `modules/` que expõe uma função `<nome>_run`. Adicionar ou remover um módulo é uma linha no array `PIPELINE` de `main.sh`. As bibliotecas em `lib/` são reutilizáveis em outros scripts do mesmo projeto.
@@ -89,7 +94,8 @@ A variável `AUTO_CONFIRM=true` desabilita prompts de confirmação, tornando o 
 | Ferramenta | Versão mínima | Finalidade |
 |---|---|---|
 | bash | 4.0+ | Execução dos scripts |
-| curl | qualquer | Módulo de notificação |
+| curl | qualquer | Módulo de notificação (Slack) |
+| jq | qualquer | Montagem do payload JSON para Slack |
 | tar | qualquer | Módulo de backup |
 | [bats-core](https://github.com/bats-core/bats-core) | 1.0+ | Rodar a suite de testes |
 | [shellcheck](https://www.shellcheck.net/) | qualquer | Lint estático dos scripts |
@@ -128,6 +134,12 @@ AUTO_CONFIRM=true bash main.sh -e prod
 SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..." bash main.sh -e prod
 ```
 
+### Com notificação por email
+
+```bash
+EMAIL_DESTINATARIO="ops@example.com" bash main.sh -e prod
+```
+
 ### Exibir ajuda
 
 ```bash
@@ -148,7 +160,14 @@ Todas as variáveis têm valor padrão definido em `config/config.sh` e podem se
 | `LOG_ARQUIVO` | `/tmp/myapp-dev.log` | Caminho do arquivo de log |
 | `BACKUP_ORIGEM` | `/tmp/myapp_origem` | Diretório de origem do backup |
 | `BACKUP_DESTINO` | `/tmp/myapp_backup` | Diretório de destino do backup |
-| `SLACK_WEBHOOK_URL` | _(vazio)_ | URL do webhook para notificações (opcional) |
+| `BACKUP_MARGEM_MB` | `100` | Espaço mínimo livre exigido no destino além do tamanho da origem (MB) |
+| `BACKUP_RETENCAO_DIAS` | `7` | Remove backups com mais de N dias após cada execução bem-sucedida; `0` desabilita |
+| `DB_TIPO` | _(vazio)_ | Tipo de banco para dump: `postgres`, `mysql` ou vazio (sem dump) |
+| `DB_NOME` | _(vazio)_ | Nome do banco de dados a ser exportado |
+| `DB_HOST` | `localhost` | Host do servidor de banco de dados |
+| `DB_USUARIO` | _(vazio)_ | Usuário do banco de dados (credenciais via `~/.pgpass` ou `~/.my.cnf`) |
+| `SLACK_WEBHOOK_URL` | _(vazio)_ | URL do webhook para notificações Slack (opcional) |
+| `EMAIL_DESTINATARIO` | _(vazio)_ | Endereço de email para alertas; requer MTA local funcional (opcional) |
 
 ---
 
