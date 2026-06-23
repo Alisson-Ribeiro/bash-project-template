@@ -37,19 +37,19 @@ _backup_db() {
 }
 
 backup_run() {
-  validate_directory "$BACKUP_ORIGEM"
-  validate_directory "$BACKUP_DESTINO"
-  validate_positive_integer "BACKUP_MARGEM_MB" "$BACKUP_MARGEM_MB"
+  validate_directory "$BACKUP_ORIGEM" || return 1
+  validate_directory "$BACKUP_DESTINO" || return 1
+  validate_positive_integer "BACKUP_MARGEM_MB" "$BACKUP_MARGEM_MB" || return 1
 
   local tamanho_origem mb_necessarios
   tamanho_origem=$(du -sm "$BACKUP_ORIGEM" | awk '{print $1}')
   mb_necessarios=$(( tamanho_origem + BACKUP_MARGEM_MB ))
-  validate_disk_space "$BACKUP_DESTINO" "$mb_necessarios"
+  validate_disk_space "$BACKUP_DESTINO" "$mb_necessarios" || return 1
 
   local timestamp
   timestamp=$(date '+%Y%m%d_%H%M%S')
 
-  _backup_db "$timestamp"
+  _backup_db "$timestamp" || return 1
 
   local destino="$BACKUP_DESTINO/backup_${timestamp}.tar.gz"
 
